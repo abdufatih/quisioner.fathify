@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kuesioner Fathify</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: linear-gradient(135deg, #f5ede3 0%, #e8d5c4 40%, #d4c4b5 100%); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const sections = [
+      { id: "intro", type: "intro" },
+      {
+        id: "profil",
+        title: "A. Profil Responden",
+        questions: [
+          { id: "q1", text: "Jenis Kelamin", type: "radio", options: ["Laki-laki", "Perempuan"] },
+          { id: "q2", text: "Usia", type: "radio", options: ["< 18 tahun", "18–22 tahun", "23–27 tahun", "> 27 tahun"] },
+          { id: "q3", text: "Status", type: "radio", options: ["Pelajar/Mahasiswa", "Mahasiswa & Kerja", "Sudah Bekerja", "Lainnya"] },
+          { id: "q4", text: "Produk Fathify yang pernah kamu beli", type: "checkbox", options: ["Aplikasi Premium", "Social Media Spesialis", "Jasa Setting E-commerce", "Lebih dari satu produk"] },
+          { id: "q5", text: "Dari mana kamu mengetahui Fathify?", type: "radio", options: ["Instagram", "TikTok", "Rekomendasi teman", "Lynk.id / marketplace", "Lainnya"] },
+        ],
+      },
+      {
+        id: "kualitas",
+        title: "B. Kualitas Produk",
+        desc: "Berikan penilaian 1–5 untuk setiap pernyataan berikut.",
+        questions: [
+          { id: "q6", text: "Produk yang saya terima sesuai dengan deskripsi yang ditampilkan.", type: "scale" },
+          { id: "q7", text: "Produk Fathify mudah digunakan / dipahami.", type: "scale" },
+          { id: "q8", text: "Desain dan tampilan produk terlihat profesional dan menarik.", type: "scale" },
+          { id: "q9", text: "Konten/isi produk bermanfaat dan relevan dengan kebutuhan saya.", type: "scale" },
+          { id: "q10", text: "Produk memberikan nilai yang sebanding dengan harganya.", type: "scale" },
+        ],
+      },
+      {
+        id: "layanan",
+        title: "C. Kualitas Layanan",
+        desc: "Berikan penilaian 1–5 untuk setiap pernyataan berikut.",
+        questions: [
+          { id: "q11", text: "Proses pembelian mudah dan tidak membingungkan.", type: "scale" },
+          { id: "q12", text: "Respon penjual cepat dan ramah.", type: "scale" },
+          { id: "q13", text: "Produk dikirim/diberikan tepat waktu setelah pembayaran.", type: "scale" },
+          { id: "q14", text: "Saya merasa aman dan nyaman bertransaksi dengan Fathify.", type: "scale" },
+        ],
+      },
+      {
+        id: "kepuasan",
+        title: "D. Kepuasan & Loyalitas",
+        desc: "Berikan penilaian 1–5 untuk setiap pernyataan berikut.",
+        questions: [
+          { id: "q15", text: "Secara keseluruhan, saya puas dengan produk dan layanan Fathify.", type: "scale" },
+          { id: "q16", text: "Saya akan membeli produk Fathify lagi di masa depan.", type: "scale" },
+          { id: "q17", text: "Saya akan merekomendasikan Fathify ke teman atau keluarga.", type: "scale" },
+        ],
+      },
+      {
+        id: "saran",
+        title: "E. Saran & Masukan",
+        questions: [
+          { id: "q18", text: "Apa yang paling kamu suka dari produk/layanan Fathify?", type: "textarea" },
+          { id: "q19", text: "Apa yang perlu diperbaiki atau ditambahkan?", type: "textarea" },
+          { id: "q20", text: "Ada produk digital lain yang kamu harapkan tersedia di Fathify?", type: "textarea" },
+        ],
+      },
+      { id: "done", type: "done" },
+    ];
+
+    const totalSteps = sections.length;
+
+    function App() {
+      const [step, setStep] = useState(0);
+      const [answers, setAnswers] = useState({});
+      const [errors, setErrors] = useState({});
+
+      const current = sections[step];
+
+      const setValue = (qid, val) => {
+        setAnswers((prev) => ({ ...prev, [qid]: val }));
+        setErrors((prev) => { const e = { ...prev }; delete e[qid]; return e; });
+      };
+
+      const toggleCheckbox = (qid, opt) => {
+        const prev = answers[qid] || [];
+        if (prev.includes(opt)) setValue(qid, prev.filter((v) => v !== opt));
+        else setValue(qid, [...prev, opt]);
+      };
+
+      const validate = () => {
+        if (!current.questions) return true;
+        const newErrors = {};
+        current.questions.forEach((q) => {
+          if (q.type === "textarea") return;
+          const val = answers[q.id];
+          if (!val || (Array.isArray(val) && val.length === 0)) {
+            newErrors[q.id] = true;
+          }
+        });
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+      };
+
+      const next = () => { if (validate()) setStep((s) => s + 1); };
+      const back = () => setStep((s) => s - 1);
+
+      const progressPct = Math.round((step / (totalSteps - 1)) * 100);
+
+      const styles = {
+        body: {
+          minHeight: "100vh",
+          background: "linear-gradient(135deg, #f5ede3 0%, #e8d5c4 40%, #d4c4b5 100%)",
+          fontFamily: "'Georgia', 'Times New Roman', serif",
+          padding: "0",
+          margin: "0",
+        },
+        header: {
+          background: "linear-gradient(135deg, #2c4a6e 0%, #1a3550 100%)",
+          padding: "20px 24px 16px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        },
+        brand: {
+          color: "#c9a84c",
+          fontSize: "20px",
+          fontWeight: "bold",
+          letterSpacing: "2px",
+          fontFamily: "'Georgia', serif",
+        },
+        stepBadge: {
+          background: "rgba(201,168,76,0.2)",
+          border: "1px solid #c9a84c",
+          borderRadius: "20px",
+          color: "#c9a84c",
+          fontSize: "12px",
+          padding: "4px 12px",
+        },
+        progressBar: {
+          height: "3px",
+          background: "#d4c4b5",
+        },
+        progressFill: {
+          height: "100%",
+          background: "linear-gradient(90deg, #c9a84c, #2c4a6e)",
+          width: `${progressPct}%`,
+          transition: "width 0.4s ease",
+        },
+        container: {
+          maxWidth: "620px",
+          margin: "0 auto",
+          padding: "24px 16px 80px",
+        },
+        card: {
+          background: "rgba(255,255,255,0.85)",
+          borderRadius: "16px",
+          padding: "28px 24px",
+          marginBottom: "16px",
+          boxShadow: "0 4px 20px rgba(44,74,110,0.08)",
+          border: "1px solid rgba(201,168,76,0.2)",
+        },
+        sectionTitle: {
+          fontSize: "17px",
+          fontWeight: "bold",
+          color: "#1a3550",
+          marginBottom: "4px",
+          letterSpacing: "0.3px",
+        },
+        sectionDesc: {
+          fontSize: "13px",
+          color: "#7a8fa6",
+          marginBottom: "20px",
+          fontStyle: "italic",
+          fontFamily: "'Georgia', serif",
+        },
+        questionLabel: {
+          fontSize: "14px",
+          color: "#2c3e50",
+          fontWeight: "600",
+          marginBottom: "12px",
+          lineHeight: "1.5",
+        },
+        required: {
+          color: "#c0392b",
+          marginLeft: "3px",
+        },
+        questionBox: {
+          marginBottom: "24px",
+          paddingBottom: "20px",
+          borderBottom: "1px dashed rgba(201,168,76,0.3)",
+        },
+        radioOption: (selected) => ({
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          padding: "10px 14px",
+          borderRadius: "8px",
+          marginBottom: "6px",
+          cursor: "pointer",
+          background: selected ? "rgba(44,74,110,0.08)" : "rgba(255,255,255,0.6)",
+          border: selected ? "1.5px solid #2c4a6e" : "1.5px solid rgba(201,168,76,0.25)",
+          transition: "all 0.2s",
+          fontSize: "13.5px",
+          color: selected ? "#1a3550" : "#4a5568",
+          fontWeight: selected ? "600" : "400",
+        }),
+        scaleContainer: {
+          display: "grid",
+          gridTemplateColumns: "repeat(5,1fr)",
+          gap: "6px",
+        },
+        scaleBtn: (selected) => ({
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "10px 4px 8px",
+          borderRadius: "10px",
+          cursor: "pointer",
+          border: selected ? "2px solid #c9a84c" : "1.5px solid rgba(201,168,76,0.3)",
+          background: selected ? "linear-gradient(135deg, #2c4a6e, #1a3550)" : "rgba(255,255,255,0.7)",
+          color: selected ? "#c9a84c" : "#6b7280",
+          fontSize: "11px",
+          textAlign: "center",
+          transition: "all 0.2s",
+        }),
+        scaleNum: {
+          fontSize: "18px",
+          fontWeight: "bold",
+          lineHeight: "1",
+        },
+        textarea: {
+          width: "100%",
+          minHeight: "80px",
+          borderRadius: "10px",
+          border: "1.5px solid rgba(201,168,76,0.35)",
+          padding: "12px",
+          fontSize: "13px",
+          fontFamily: "'Georgia', serif",
+          color: "#2c3e50",
+          resize: "vertical",
+          background: "rgba(255,255,255,0.8)",
+          boxSizing: "border-box",
+          outline: "none",
+        },
+        errorMsg: {
+          color: "#c0392b",
+          fontSize: "11px",
+          marginTop: "4px",
+        },
+        navRow: {
+          display: "flex",
+          gap: "12px",
+          justifyContent: "space-between",
+          marginTop: "8px",
+        },
+        btnPrimary: {
+          flex: 1,
+          padding: "14px",
+          borderRadius: "12px",
+          background: "linear-gradient(135deg, #2c4a6e, #1a3550)",
+          color: "#c9a84c",
+          border: "none",
+          fontSize: "15px",
+          fontWeight: "bold",
+          cursor: "pointer",
+          letterSpacing: "0.5px",
+        },
+        btnSecondary: {
+          flex: "0 0 auto",
+          padding: "14px 20px",
+          borderRadius: "12px",
+          background: "transparent",
+          color: "#2c4a6e",
+          border: "1.5px solid #2c4a6e",
+          fontSize: "14px",
+          cursor: "pointer",
+        },
+      };
+
+      if (current.type === "intro") {
+        return (
+          <div style={styles.body}>
+            <div style={styles.header}>
+              <span style={styles.brand}>FATHIFY</span>
+            </div>
+            <div style={styles.progressBar}><div style={styles.progressFill} /></div>
+            <div style={styles.container}>
+              <div style={{ ...styles.card, textAlign: "center", padding: "40px 28px" }}>
+                <div style={{ fontSize: "36px", marginBottom: "12px" }}>📋</div>
+                <div style={{ fontSize: "20px", fontWeight: "bold", color: "#1a3550", marginBottom: "8px" }}>
+                  Kuesioner Kepuasan Konsumen
+                </div>
+                <div style={{ fontSize: "16px", color: "#c9a84c", fontStyle: "italic", marginBottom: "16px" }}>
+                  Fathify Digital Products
+                </div>
+                <div style={{ fontSize: "13.5px", color: "#4a5568", lineHeight: "1.7", marginBottom: "24px" }}>
+                  Halo! Terima kasih sudah membeli produk dari <strong>Fathify</strong>.
+                  Kuesioner ini dibuat untuk memahami tingkat kepuasan dan penilaian kamu
+                  terhadap produk & layanan kami — meliputi kualitas produk, kemudahan akses,
+                  hingga pengalaman transaksi.
+                  <br /><br />
+                  Hasil dari kuesioner ini akan digunakan sebagai bahan evaluasi untuk meningkatkan
+                  kualitas Fathify ke depannya. ✨
+                </div>
+                <div style={{ fontSize: "11px", color: "#7a8fa6", marginBottom: "28px" }}>
+                  Keterangan skala: 1 = Sangat Tidak Setuju &nbsp;·&nbsp; 5 = Sangat Setuju
+                </div>
+                <button style={{ ...styles.btnPrimary, width: "100%" }} onClick={next}>
+                  Mulai Isi Kuesioner →
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      if (current.type === "done") {
+        return (
+          <div style={styles.body}>
+            <div style={styles.header}>
+              <span style={styles.brand}>FATHIFY</span>
+            </div>
+            <div style={styles.progressBar}><div style={styles.progressFill} /></div>
+            <div style={styles.container}>
+              <div style={{ ...styles.card, textAlign: "center", padding: "48px 28px" }}>
+                <div style={{ fontSize: "48px", marginBottom: "16px" }}>🙌</div>
+                <div style={{ fontSize: "22px", fontWeight: "bold", color: "#1a3550", marginBottom: "8px" }}>
+                  Makasih banget!
+                </div>
+                <div style={{ fontSize: "14px", color: "#4a5568", lineHeight: "1.8", marginBottom: "24px" }}>
+                  Responmu sangat berarti untuk perkembangan Fathify.
+                  <br />Kami akan terus berusaha memberikan produk digital
+                  <br />yang semakin berkualitas buat kamu. 💛
+                </div>
+                <div style={{
+                  background: "rgba(44,74,110,0.06)",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  fontSize: "13px",
+                  color: "#2c4a6e",
+                  marginBottom: "28px",
+                }}>
+                  Pantau update produk terbaru di<br />
+                  <strong>@fatihudinn_</strong> · Instagram & TikTok
+                </div>
+                <button style={{ ...styles.btnPrimary, width: "100%" }} onClick={() => { setStep(0); setAnswers({}); }}>
+                  Isi Ulang Kuesioner
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div style={styles.body}>
+          <div style={styles.header}>
+            <span style={styles.brand}>FATHIFY</span>
+            <span style={styles.stepBadge}>
+              {step}/{totalSteps - 2}
+            </span>
+          </div>
+          <div style={styles.progressBar}><div style={styles.progressFill} /></div>
+          <div style={styles.container}>
+            <div style={styles.card}>
+              <div style={styles.sectionTitle}>{current.title}</div>
+              {current.desc && <div style={styles.sectionDesc}>{current.desc}</div>}
+
+              {current.questions.map((q, qi) => (
+                <div key={q.id} style={{ ...styles.questionBox, ...(qi === current.questions.length - 1 ? { borderBottom: "none", marginBottom: 0, paddingBottom: 0 } : {}) }}>
+                  <div style={styles.questionLabel}>
+                    {q.text}
+                    {q.type !== "textarea" && <span style={styles.required}>*</span>}
+                  </div>
+
+                  {q.type === "radio" && q.options.map((opt) => (
+                    <div key={opt} style={styles.radioOption(answers[q.id] === opt)} onClick={() => setValue(q.id, opt)}>
+                      <div style={{
+                        width: "16px", height: "16px", borderRadius: "50%", flexShrink: 0,
+                        border: answers[q.id] === opt ? "5px solid #2c4a6e" : "2px solid #c9a84c",
+                        background: "white",
+                      }} />
+                      {opt}
+                    </div>
+                  ))}
+
+                  {q.type === "checkbox" && q.options.map((opt) => {
+                    const checked = (answers[q.id] || []).includes(opt);
+                    return (
+                      <div key={opt} style={styles.radioOption(checked)} onClick={() => toggleCheckbox(q.id, opt)}>
+                        <div style={{
+                          width: "16px", height: "16px", borderRadius: "4px", flexShrink: 0,
+                          border: checked ? "none" : "2px solid #c9a84c",
+                          background: checked ? "#2c4a6e" : "white",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          color: "white", fontSize: "11px", fontWeight: "bold",
+                        }}>
+                          {checked && "✓"}
+                        </div>
+                        {opt}
+                      </div>
+                    );
+                  })}
+
+                  {q.type === "scale" && (
+                    <div style={styles.scaleContainer}>
+                      {[1, 2, 3, 4, 5].map((n) => {
+                        const labels = ["Sangat\nTidak\nSetuju", "Tidak\nSetuju", "Netral", "Setuju", "Sangat\nSetuju"];
+                        return (
+                          <div key={n} style={styles.scaleBtn(answers[q.id] === n)} onClick={() => setValue(q.id, n)}>
+                            <span style={styles.scaleNum}>{n}</span>
+                            <span style={{ fontSize: "9px", marginTop: "4px", whiteSpace: "pre-line", lineHeight: "1.2" }}>{labels[n - 1]}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {q.type === "textarea" && (
+                    <textarea
+                      style={styles.textarea}
+                      placeholder="Tulis jawabanmu di sini..."
+                      value={answers[q.id] || ""}
+                      onChange={(e) => setValue(q.id, e.target.value)}
+                    />
+                  )}
+
+                  {errors[q.id] && <div style={styles.errorMsg}>⚠ Pertanyaan ini wajib diisi</div>}
+                </div>
+              ))}
+            </div>
+
+            <div style={styles.navRow}>
+              {step > 1 && (
+                <button style={styles.btnSecondary} onClick={back}>← Kembali</button>
+              )}
+              <button style={{ ...styles.btnPrimary, flex: 1 }} onClick={next}>
+                {step === totalSteps - 2 ? "Kirim Jawaban ✓" : "Lanjut →"}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
