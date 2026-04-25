@@ -336,6 +336,22 @@
                 <div style={{ fontSize: "48px", marginBottom: "16px" }}>🙌</div>
                 <div style={{ fontSize: "22px", fontWeight: "bold", color: "#1a3550", marginBottom: "8px" }}>
                   Makasih banget!
+<button 
+  style={{ ...styles.btnPrimary }}
+  onClick={() => {
+    fetch("https://script.google.com/macros/s/AKfycbw6...", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(answers)
+    })
+      .then(() => alert("Berhasil dikirim!"))
+      .catch(() => alert("Gagal kirim"));
+  }}
+>
+  Kirim Jawaban
+</button>
                 </div>
                 <div style={{ fontSize: "14px", color: "#4a5568", lineHeight: "1.8", marginBottom: "24px" }}>
                   Responmu sangat berarti untuk perkembangan Fathify.
