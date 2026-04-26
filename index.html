@@ -339,17 +339,22 @@
 <button 
   style={{ ...styles.btnPrimary }}
   onClick={() => {
-    fetch("https://script.google.com/macros/s/AKfycbw6...", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(answers)
-    })
-      .then(() => alert("Berhasil dikirim!"))
-      .catch(() => alert("Gagal kirim"));
-  }}
->
+  fetch("https://script.google.com/macros/s/AKfycbza0gw7E3pjt_USgCLwxT-0BxcMXOK_YY3A9d9ENxwCrCXCMHvHmetIwG4nySqnbC0O4g/exec", {
+  method: "POST",
+  headers: {
+    "Content-Type": "text/plain;charset=utf-8"
+  },
+  body: JSON.stringify(answers)
+})
+.then(res => res.text())
+.then(res => {
+  console.log("RES:", res)
+  alert("Berhasil dikirim!")
+})
+.catch(err => {
+  console.error("ERROR:", err)
+  alert("Gagal kirim")
+})
   Kirim Jawaban
 </button>
                 </div>
